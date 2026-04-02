@@ -21,6 +21,11 @@ namespace Tarea_3_4.Services
             return filasAfectadas;
         }
 
+        public async Task<List<Empleado>> AllUsers()
+        {
+            return await _dbSet.ToListAsync();
+        }
+
         
     }
 }
