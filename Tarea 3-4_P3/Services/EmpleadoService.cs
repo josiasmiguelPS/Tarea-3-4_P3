@@ -26,6 +26,17 @@ namespace Tarea_3_4.Services
             return await _dbSet.ToListAsync();
         }
 
+        public async Task<int> DeleteUser(int id)
+        {
+            var empleado = await _context.Empleados.FindAsync(id);
+            if (empleado == null) 
+            {
+                return 0;
+            }
+            _context.Empleados.Remove(empleado);
+            return await _context.SaveChangesAsync();
+        }
+
         
     }
 }
