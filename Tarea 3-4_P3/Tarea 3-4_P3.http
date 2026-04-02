@@ -1,6 +1,0 @@
-@Tarea_3_4_P3_HostAddress = http://localhost:5142
-
-GET {{Tarea_3_4_P3_HostAddress}}/weatherforecast/
-Accept: application/json
-
-###
