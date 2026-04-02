@@ -37,6 +37,10 @@ namespace Tarea_3_4.Services
             return await _context.SaveChangesAsync();
         }
 
-        
+        public async Task<int> UpdateUser(Empleado modelo)
+        {
+            _context.Empleados.Update(modelo);
+            return await _context.SaveChangesAsync();
+        }
     }
 }
