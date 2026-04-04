@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Sistema de Empleados - ITLA</title>
+    <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+
+    <nav>
+        <h1 id="navTitle">Sistema de Gestion de Empleados</h1>
+        <button id="btnLogout" onclick="logout()">Cerrar sesion</button>
+    </nav>
+
+    <div id="loginPage">
+        <div class="login-card">
+            <h2>Iniciar Sesion</h2>
+
+            <label for="username">Usuario</label>
+            <input type="text" id="username" placeholder="Ingresa tu usuario" autocomplete="off" />
+
+            <label for="password">Contrasena</label>
+            <input type="password" id="password" placeholder="Ingresa tu contrasena" />
+
+            <button id="loginBtn" onclick="doLogin()">Entrar</button>
+
+            <div id="loginError">Usuario o contrasena incorrectos.</div>
+        </div>
+    </div>
+
+    <div id="appPage">
+        <div class="card">
+            <h2 id="formTitle">Agregar Empleado</h2>
+
+            <input type="hidden" id="empleadoId" />
+
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="nombre">Nombre *</label>
+                    <input type="text" id="nombre" placeholder="Ej: Juan" maxlength="50" />
+                </div>
+                <div class="form-group">
+                    <label for="apellido">Apellido *</label>
+                    <input type="text" id="apellido" placeholder="Ej: Perez" maxlength="50" />
+                </div>
+                <div class="form-group">
+                    <label for="edad">Edad</label>
+                    <input type="number" id="edad" placeholder="Ej: 30" min="18" max="100" />
+                </div>
+                <div class="form-group">
+                    <label for="direccion">Direccion</label>
+                    <input type="text" id="direccion" placeholder="Ej: Calle 1, Santiago" maxlength="100" />
+                </div>
+                <div class="form-group">
+                    <label for="numero">Numero</label>
+                    <input type="text" id="numero" placeholder="Ej: 8094561234" maxlength="10" />
+                </div>
+                <div class="form-group">
+                    <label for="email">Email</label>
+                    <input type="email" id="email" placeholder="Ej: juan@correo.com" maxlength="100" />
+                </div>
+            </div>
+
+            <div class="form-actions">
+                <button id="btnGuardar" class="btn-success" onclick="guardarEmpleado()">Guardar</button>
+                <button id="btnCancelar" class="btn-secondary" onclick="cancelarEdicion()" style="display: none;">Cancelar</button>
+            </div>
+
+            <div id="formFeedback"></div>
+        </div>
+
+        <div class="card">
+            <h2>Lista de Empleados</h2>
+            <div id="spinner">Cargando...</div>
+            <div class="table-wrap">
+                <table id="tablaEmpleados">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Nombre</th>
+                            <th>Apellido</th>
+                            <th>Edad</th>
+                            <th>Direccion</th>
+                            <th>Numero</th>
+                            <th>Email</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tbodyEmpleados"></tbody>
+                </table>
+                <div id="noData">No hay empleados registrados.</div>
+            </div>
+        </div>
+    </div>
+
+    <div id="modalOverlay">
+        <div class="modal-box">
+            <h3>Confirmar Eliminacion</h3>
+            <p id="modalMsg">Seguro que deseas eliminar este empleado?</p>
+            <div class="modal-actions">
+                <button class="btn-danger" id="btnConfirmDelete" onclick="confirmarEliminar()">Eliminar</button>
+                <button class="btn-secondary" onclick="cerrarModal()">Cancelar</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+
+</body>
+</html>
