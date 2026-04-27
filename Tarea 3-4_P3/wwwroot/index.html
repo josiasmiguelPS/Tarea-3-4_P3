@@ -3,109 +3,166 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Sistema de Empleados - ITLA</title>
+    <title>Sistema Papelería</title>
     <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
 
     <nav>
-        <h1 id="navTitle">Sistema de Gestion de Empleados</h1>
-        <button id="btnLogout" onclick="logout()">Cerrar sesion</button>
+        <h1 id="navTitle">Sistema de Gestión - Papelería</h1>
+        <div id="navMenu" style="display: none;">
+            <button class="btn-warning" onclick="mostrarModulo('moduloVentas')">🛒 Punto de Venta</button>
+            <button class="btn-primary" onclick="mostrarModulo('moduloProductos')">📦 Inventario</button>
+            <button class="btn-secondary" onclick="mostrarModulo('moduloEmpleados')">👥 Empleados</button>
+        </div>
+        <button id="btnLogout" onclick="logout()">Cerrar sesión</button>
     </nav>
 
     <div id="loginPage">
         <div class="login-card">
-            <h2>Iniciar Sesion</h2>
-
+            <h2>Iniciar Sesión</h2>
             <label for="username">Usuario</label>
             <input type="text" id="username" placeholder="Ingresa tu usuario" autocomplete="off" />
-
-            <label for="password">Contrasena</label>
-            <input type="password" id="password" placeholder="Ingresa tu contrasena" />
-
+            <label for="password">Contraseña</label>
+            <input type="password" id="password" placeholder="Ingresa tu contraseña" />
             <button id="loginBtn" onclick="doLogin()">Entrar</button>
-
-            <div id="loginError">Usuario o contrasena incorrectos.</div>
+            <div id="loginError">Usuario o contraseña incorrectos.</div>
         </div>
     </div>
 
-    <div id="appPage">
-        <div class="card">
-            <h2 id="formTitle">Agregar Empleado</h2>
+    <div id="appPage" style="display: none; padding: 30px;">
 
-            <input type="hidden" id="empleadoId" />
-
-            <div class="form-grid">
-                <div class="form-group">
-                    <label for="nombre">Nombre *</label>
-                    <input type="text" id="nombre" placeholder="Ej: Juan" maxlength="50" />
+        <div id="moduloEmpleados" style="display: none;">
+            <div class="card">
+                <h2>Lista de Empleados</h2>
+                <button class="btn-success" style="margin-bottom: 15px;">+ Nuevo Empleado</button>
+                <div class="table-wrap">
+                    <table id="tablaEmpleados">
+                        <thead>
+                            <tr><th>ID</th><th>Nombre</th><th>Email</th><th>Acciones</th></tr>
+                        </thead>
+                        <tbody id="tbodyEmpleados"></tbody>
+                    </table>
                 </div>
-                <div class="form-group">
-                    <label for="apellido">Apellido *</label>
-                    <input type="text" id="apellido" placeholder="Ej: Perez" maxlength="50" />
-                </div>
-                <div class="form-group">
-                    <label for="edad">Edad</label>
-                    <input type="number" id="edad" placeholder="Ej: 30" min="18" max="100" />
-                </div>
-                <div class="form-group">
-                    <label for="direccion">Direccion</label>
-                    <input type="text" id="direccion" placeholder="Ej: Calle 1, Santiago" maxlength="100" />
-                </div>
-                <div class="form-group">
-                    <label for="numero">Numero</label>
-                    <input type="text" id="numero" placeholder="Ej: 8094561234" maxlength="10" />
-                </div>
-                <div class="form-group">
-                    <label for="email">Email</label>
-                    <input type="email" id="email" placeholder="Ej: juan@correo.com" maxlength="100" />
-                </div>
-            </div>
-
-            <div class="form-actions">
-                <button id="btnGuardar" class="btn-success" onclick="guardarEmpleado()">Guardar</button>
-                <button id="btnCancelar" class="btn-secondary" onclick="cancelarEdicion()" style="display: none;">Cancelar</button>
-            </div>
-
-            <div id="formFeedback"></div>
-        </div>
-
-        <div class="card">
-            <h2>Lista de Empleados</h2>
-            <div id="spinner">Cargando...</div>
-            <div class="table-wrap">
-                <table id="tablaEmpleados">
-                    <thead>
-                        <tr>
-                            <th>ID</th>
-                            <th>Nombre</th>
-                            <th>Apellido</th>
-                            <th>Edad</th>
-                            <th>Direccion</th>
-                            <th>Numero</th>
-                            <th>Email</th>
-                            <th>Acciones</th>
-                        </tr>
-                    </thead>
-                    <tbody id="tbodyEmpleados"></tbody>
-                </table>
-                <div id="noData">No hay empleados registrados.</div>
             </div>
         </div>
+
+        <div id="moduloProductos">
+            <div class="card">
+                <h2 id="formTitleProducto">Agregar Producto al Inventario</h2>
+                <input type="hidden" id="productoId" />
+
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>Código de Barras</label>
+                        <input type="text" id="prodCodigo" placeholder="Ej: 746123..." />
+                    </div>
+                    <div class="form-group">
+                        <label>Nombre del Artículo *</label>
+                        <input type="text" id="prodNombre" placeholder="Ej: Cuaderno Norma" />
+                    </div>
+                    <div class="form-group">
+                        <label>ID Categoría *</label>
+                        <input type="number" id="prodCategoria" placeholder="Ej: 1" />
+                    </div>
+                    <div class="form-group">
+                        <label>Costo de Compra ($)</label>
+                        <input type="number" step="0.01" id="prodCosto" />
+                    </div>
+                    <div class="form-group">
+                        <label>Precio de Venta ($) *</label>
+                        <input type="number" step="0.01" id="prodPrecio" />
+                    </div>
+                    <div class="form-group">
+                        <label>Stock Actual</label>
+                        <input type="number" id="prodStock" />
+                    </div>
+                    <div class="form-group">
+                        <label>Alerta Stock Mínimo</label>
+                        <input type="number" id="prodMinimo" value="5" />
+                    </div>
+                    <div class="form-group" style="flex-direction: row; align-items: center; gap: 10px;">
+                        <input type="checkbox" id="prodEsCaja" style="width: auto;" />
+                        <label style="margin: 0;">¿Se vende por Caja?</label>
+                    </div>
+                    <div class="form-group">
+                        <label>Unidades por Caja</label>
+                        <input type="number" id="prodUnidadesCaja" value="1" />
+                    </div>
+                </div>
+                <div id="moduloVentas" style="display: none;">
+                    <div class="pos-container">
+                        <div class="pos-catalogo">
+                            <div class="pos-header">
+                                <h2>Catálogo de Ventas</h2>
+                                <input type="text" id="buscadorPos" placeholder="🔍 Buscar por nombre o código de barras..." onkeyup="filtrarPos()">
+                            </div>
+                            <div id="gridProductosPos" class="productos-grid">
+                            </div>
+                        </div>
+
+                        <div class="pos-carrito card">
+                            <h2>Facturación</h2>
+                            <div class="carrito-items" id="listaCarrito">
+                                <div style="text-align:center; color:#999; margin-top: 20px;">El carrito está vacío</div>
+                            </div>
+
+                            <div class="carrito-totales">
+                                <div class="total-row">
+                                    <span>SubTotal:</span>
+                                    <span id="subTotalVenta">$0.00</span>
+                                </div>
+                                <div class="total-row gran-total">
+                                    <span>Total a Pagar:</span>
+                                    <span id="totalVenta">$0.00</span>
+                                </div>
+                                <button class="btn-success btn-cobrar" onclick="procesarVenta()">💰 Procesar Venta</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-actions">
+                    <button id="btnGuardarProd" class="btn-success" onclick="guardarProducto()">Guardar Producto</button>
+                    <button id="btnCancelarProd" class="btn-secondary" onclick="limpiarFormProducto()" style="display: none;">Cancelar</button>
+                </div>
+                <div id="formFeedbackProd" style="display: none; margin-top: 10px; padding: 10px; border-radius: 5px;"></div>
+            </div>
+
+            <div class="card">
+                <h2>Inventario de Mercancía</h2>
+                <div class="table-wrap">
+                    <table id="tablaProductos">
+                        <thead>
+                            <tr>
+                                <th>Código</th>
+                                <th>Nombre</th>
+                                <th>Costo</th>
+                                <th>Precio</th>
+                                <th>Stock</th>
+                                <th>Tipo Venta</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tbodyProductos"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
     </div>
 
     <div id="modalOverlay">
         <div class="modal-box">
-            <h3>Confirmar Eliminacion</h3>
-            <p id="modalMsg">Seguro que deseas eliminar este empleado?</p>
+            <h3>Confirmar Eliminación</h3>
+            <p id="modalMsg">¿Seguro que deseas eliminar esto?</p>
             <div class="modal-actions">
-                <button class="btn-danger" id="btnConfirmDelete" onclick="confirmarEliminar()">Eliminar</button>
-                <button class="btn-secondary" onclick="cerrarModal()">Cancelar</button>
+                <button class="btn-danger" id="btnConfirmDelete" onclick="confirmarEliminarProd()">Eliminar</button>
+                <button class="btn-secondary" onclick="document.getElementById('modalOverlay').classList.remove('open')">Cancelar</button>
             </div>
         </div>
     </div>
 
     <script src="app.js"></script>
-
 </body>
 </html>
