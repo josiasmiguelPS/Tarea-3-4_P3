@@ -6,8 +6,10 @@ const VALID_USERS = [
     { user: 'josias', pass: '1234' }
 ];
 
+// Variables globales para edición y eliminación
 let modoEdicionProd = false;
 let deleteProdId = null;
+let deleteEmpId = null;
 
 // ================= LOGIN Y NAVEGACIÓN =================
 function doLogin() {
@@ -39,11 +41,152 @@ function showApp() {
 function mostrarModulo(idModulo) {
     document.getElementById('moduloEmpleados').style.display = 'none';
     document.getElementById('moduloProductos').style.display = 'none';
+    document.getElementById('moduloVentas').style.display = 'none';
+
     document.getElementById(idModulo).style.display = 'block';
 
     if (idModulo === 'moduloProductos') cargarProductos();
     if (idModulo === 'moduloEmpleados') cargarEmpleados();
+    if (idModulo === 'moduloVentas') cargarCatalogoPos();
 }
+
+// Auto-Login si ya hay sesión
+if (sessionStorage.getItem('loggedIn') === '1') showApp();
+
+
+// ================= MÓDULO EMPLEADOS =================
+async function cargarEmpleados() {
+    try {
+        const res = await fetch(`${API_EMPLEADO}/Listar`);
+        const data = await res.json();
+        renderTablaEmpleados(data);
+    } catch {
+        console.error("Error al cargar empleados");
+    }
+}
+
+function renderTablaEmpleados(empleados) {
+    const tbody = document.getElementById('tbodyEmpleados');
+    tbody.innerHTML = '';
+
+    empleados.forEach(e => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+            <td><span class="badge-id">#${e.id}</span></td>
+            <td>${e.nombre}</td>
+            <td>${e.apellido}</td>
+            <td>${e.edad || ''}</td>
+            <td>${e.direccion || ''}</td>
+            <td>${e.numero || ''}</td>
+            <td>${e.email || ''}</td>
+            <td>
+                <div class="tbl-actions">
+                    <button class="btn-warning" onclick="cargarParaEditarEmp(${e.id})">Editar</button>
+                    <button class="btn-danger btn-eliminar" onclick="abrirModalEmp(${e.id}, '${e.nombre}')">Eliminar</button>
+                </div>
+            </td>`;
+        tbody.appendChild(tr);
+    });
+}
+
+async function guardarEmpleado() {
+    const idVal = document.getElementById('empleadoId').value;
+    const nombre = document.getElementById('nombre').value.trim();
+    const apellido = document.getElementById('apellido').value.trim();
+
+    if (!nombre || !apellido) {
+        mostrarMensajeEmp('Nombre y Apellido son obligatorios.', false);
+        return;
+    }
+
+    const modelo = {
+        id: idVal ? parseInt(idVal) : 0,
+        nombre: nombre,
+        apellido: apellido,
+        edad: parseInt(document.getElementById('edad').value) || null,
+        direccion: document.getElementById('direccion').value.trim(),
+        numero: document.getElementById('numero').value.trim(),
+        email: document.getElementById('email').value.trim()
+    };
+
+    const isEdit = idVal !== "";
+    const url = isEdit ? `${API_EMPLEADO}/Modificar` : `${API_EMPLEADO}/Agregar`;
+    const method = isEdit ? 'PUT' : 'POST';
+
+    try {
+        const res = await fetch(url, {
+            method,
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(modelo)
+        });
+
+        if (res.ok) {
+            mostrarMensajeEmp(isEdit ? 'Empleado modificado.' : 'Empleado creado.', true);
+            limpiarFormEmpleado();
+            cargarEmpleados();
+        } else {
+            mostrarMensajeEmp('Error al procesar la solicitud.', false);
+        }
+    } catch {
+        mostrarMensajeEmp('Error de conexión con la API.', false);
+    }
+}
+
+function mostrarMensajeEmp(msg, esExito) {
+    const div = document.getElementById('formFeedback');
+    div.textContent = msg;
+    div.style.display = 'block';
+    div.style.backgroundColor = esExito ? '#d4edda' : '#f8d7da';
+    div.style.color = esExito ? '#155724' : '#721c24';
+    setTimeout(() => div.style.display = 'none', 3000);
+}
+
+function limpiarFormEmpleado() {
+    ['empleadoId', 'nombre', 'apellido', 'edad', 'direccion', 'numero', 'email'].forEach(id => document.getElementById(id).value = '');
+    document.getElementById('formTitleEmpleado').textContent = 'Agregar Empleado';
+    document.getElementById('btnGuardar').textContent = 'Guardar';
+    document.getElementById('btnCancelarEmp').style.display = 'none';
+}
+
+async function cargarParaEditarEmp(id) {
+    const res = await fetch(`${API_EMPLEADO}/Listar`);
+    const data = await res.json();
+    const emp = data.find(e => e.id === id);
+    if (!emp) return;
+
+    document.getElementById('empleadoId').value = emp.id;
+    document.getElementById('nombre').value = emp.nombre;
+    document.getElementById('apellido').value = emp.apellido;
+    document.getElementById('edad').value = emp.edad || '';
+    document.getElementById('direccion').value = emp.direccion || '';
+    document.getElementById('numero').value = emp.numero || '';
+    document.getElementById('email').value = emp.email || '';
+
+    document.getElementById('formTitleEmpleado').textContent = 'Editar Empleado';
+    document.getElementById('btnGuardar').textContent = 'Actualizar';
+    document.getElementById('btnCancelarEmp').style.display = 'inline-block';
+}
+
+function abrirModalEmp(id, nombre) {
+    deleteEmpId = id;
+    document.getElementById('modalMsg').textContent = `¿Seguro que deseas eliminar al empleado "${nombre}"?`;
+    document.getElementById('btnConfirmDelete').onclick = confirmarEliminarEmp; // Asigna función de empleado
+    document.getElementById('modalOverlay').classList.add('open');
+}
+
+async function confirmarEliminarEmp() {
+    document.getElementById('modalOverlay').classList.remove('open');
+    try {
+        const res = await fetch(`${API_EMPLEADO}/Eliminar?id=${deleteEmpId}`, { method: 'DELETE' });
+        if (res.ok || res.status === 204) {
+            mostrarMensajeEmp('Empleado eliminado.', true);
+            cargarEmpleados();
+        }
+    } catch {
+        mostrarMensajeEmp('No se pudo eliminar el registro', false);
+    }
+}
+
 
 // ================= MÓDULO PRODUCTOS (INVENTARIO) =================
 async function cargarProductos() {
@@ -61,7 +204,6 @@ function renderTablaProductos(productos) {
     tbody.innerHTML = '';
 
     productos.forEach(p => {
-        // Validación visual de stock bajo
         const stockStyle = p.stockActual <= p.stockMinimo ? 'color: red; font-weight: bold;' : '';
         const tipoVenta = p.seVendePorCaja ? `Caja (x${p.unidadesPorCaja})` : 'Unidad';
 
@@ -86,11 +228,10 @@ function renderTablaProductos(productos) {
 async function guardarProducto() {
     const idVal = document.getElementById('productoId').value;
 
-    // Armamos el DTO exactamente como lo espera el backend de C#
     const modeloDto = {
         codigoBarras: document.getElementById('prodCodigo').value.trim(),
         nombre: document.getElementById('prodNombre').value.trim(),
-        categoriaId: parseInt(document.getElementById('prodCategoria').value) || 1, // Por defecto 1 para evitar errores si está vacío
+        categoriaId: parseInt(document.getElementById('prodCategoria').value) || 1,
         costo: parseFloat(document.getElementById('prodCosto').value) || 0,
         precio: parseFloat(document.getElementById('prodPrecio').value) || 0,
         stockActual: parseInt(document.getElementById('prodStock').value) || 0,
@@ -100,7 +241,7 @@ async function guardarProducto() {
     };
 
     if (!modeloDto.nombre || modeloDto.precio <= 0) {
-        mostrarMensaje('El nombre y un precio válido son obligatorios.', false);
+        mostrarMensajeProd('El nombre y un precio válido son obligatorios.', false);
         return;
     }
 
@@ -116,14 +257,14 @@ async function guardarProducto() {
         });
 
         if (res.ok) {
-            mostrarMensaje(isEdit ? 'Producto actualizado.' : 'Producto agregado.', true);
+            mostrarMensajeProd(isEdit ? 'Producto actualizado.' : 'Producto agregado.', true);
             limpiarFormProducto();
             cargarProductos();
         } else {
-            mostrarMensaje('Error al guardar.', false);
+            mostrarMensajeProd('Error al guardar.', false);
         }
     } catch {
-        mostrarMensaje('Error de conexión con la API.', false);
+        mostrarMensajeProd('Error de conexión con la API.', false);
     }
 }
 
@@ -151,6 +292,7 @@ async function cargarParaEditarProd(id) {
 function abrirModalProd(id, nombre) {
     deleteProdId = id;
     document.getElementById('modalMsg').textContent = `¿Seguro que deseas eliminar "${nombre}"?`;
+    document.getElementById('btnConfirmDelete').onclick = confirmarEliminarProd; // Asigna función de producto
     document.getElementById('modalOverlay').classList.add('open');
 }
 
@@ -160,13 +302,13 @@ async function confirmarEliminarProd() {
         const res = await fetch(`${API_PRODUCTO}/Eliminar?id=${deleteProdId}`, { method: 'DELETE' });
 
         if (res.ok || res.status === 204) {
-            mostrarMensaje('Producto eliminado.', true);
+            mostrarMensajeProd('Producto eliminado.', true);
             cargarProductos();
         } else if (res.status === 400) {
-            mostrarMensaje('No se puede eliminar porque tiene facturas.', false);
+            mostrarMensajeProd('No se puede eliminar porque tiene facturas.', false);
         }
     } catch {
-        mostrarMensaje('Error de red.', false);
+        mostrarMensajeProd('Error de red.', false);
     }
 }
 
@@ -181,7 +323,7 @@ function limpiarFormProducto() {
     document.getElementById('btnCancelarProd').style.display = 'none';
 }
 
-function mostrarMensaje(msg, esExito) {
+function mostrarMensajeProd(msg, esExito) {
     const div = document.getElementById('formFeedbackProd');
     div.textContent = msg;
     div.style.display = 'block';
@@ -190,23 +332,9 @@ function mostrarMensaje(msg, esExito) {
     setTimeout(() => div.style.display = 'none', 3000);
 }
 
-// Auto-Login si ya hay sesión
-if (sessionStorage.getItem('loggedIn') === '1') showApp();
 // ================= MÓDULO PUNTO DE VENTA (POS) =================
 let catalogoVentas = [];
 let carritoVentas = [];
-
-// Actualizar la función mostrarModulo para cargar el POS
-function mostrarModulo(idModulo) {
-    document.getElementById('moduloEmpleados').style.display = 'none';
-    document.getElementById('moduloProductos').style.display = 'none';
-    document.getElementById('moduloVentas').style.display = 'none';
-    document.getElementById(idModulo).style.display = 'block';
-
-    if (idModulo === 'moduloProductos') cargarProductos();
-    if (idModulo === 'moduloEmpleados') cargarEmpleados(); // Si lo tienes implementado
-    if (idModulo === 'moduloVentas') cargarCatalogoPos();
-}
 
 async function cargarCatalogoPos() {
     try {
@@ -223,21 +351,13 @@ function renderGridPos(lista) {
     grid.innerHTML = '';
 
     lista.forEach(p => {
-        // 1. Lógica de Colores por Stock
-        let claseEstado = 'estado-disponible'; // Verde por defecto
+        let claseEstado = 'estado-disponible';
+        if (p.stockActual === 0) claseEstado = 'estado-agotado';
+        else if (p.stockActual < 5) claseEstado = 'estado-escaso';
 
-        if (p.stockActual === 0) {
-            claseEstado = 'estado-agotado'; // Gris y sin clic
-        } else if (p.stockActual < 5) {
-            claseEstado = 'estado-escaso'; // Rojo
-        }
-
-        // 2. Lógica de Imagen (Simulada si no existe en BD)
-        // Usamos Placehold.co para generar una imagen genérica bonita con el nombre del producto
         const textoImg = encodeURIComponent(p.nombre.substring(0, 10));
         const imagenUrl = p.imagenUrl ? p.imagenUrl : `https://placehold.co/300x200/e8eaf6/1a237e?text=${textoImg}`;
 
-        // 3. Renderizar Tarjeta
         const card = document.createElement('div');
         card.className = `prod-card ${claseEstado}`;
         card.onclick = () => agregarAlCarrito(p);
@@ -260,7 +380,6 @@ function filtrarPos() {
     renderGridPos(filtrados);
 }
 
-// ==== Lógica del Carrito ====
 function agregarAlCarrito(producto) {
     const itemExistente = carritoVentas.find(item => item.id === producto.id);
 
@@ -333,9 +452,6 @@ function procesarVenta() {
         alert('Agrega artículos al carrito primero.');
         return;
     }
-
-    // Aquí es donde en el futuro llamaremos a la API (FacturaController)
-    // para descontar el stock en la base de datos de C#
     alert(`Venta cobrada con éxito por un total de ${document.getElementById('totalVenta').textContent}`);
     carritoVentas = [];
     actualizarCarrito();
